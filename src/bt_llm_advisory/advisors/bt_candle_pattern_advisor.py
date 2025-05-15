@@ -53,6 +53,10 @@ IMPORTANT CONSTRAINS
 
 
 class BacktraderCandlePatternAdvisor(BacktraderLLMAdvisor):
+    """Candle pattern advisor
+
+    This advisor identifies candlestick patterns on OHLC data.
+    """
 
     advisor_instructions = ADVISOR_INSTRUCTIONS
 
@@ -94,7 +98,7 @@ class BacktraderCandlePatternAdvisor(BacktraderLLMAdvisor):
                 LLMAdvisorDataArtefact(
                     description=f"DataFeed {feed_data.name}",
                     artefact=feed_data.data,
-                    output_mode=LLMAdvisorDataArtefactOutputMode.MARKDOWN_TABLE
+                    output_mode=LLMAdvisorDataArtefactOutputMode.MARKDOWN_TABLE,
                 )
             )
         return ohlc_data

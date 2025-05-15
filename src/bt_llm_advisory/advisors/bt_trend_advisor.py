@@ -99,7 +99,10 @@ class LinearRegressionSlope(bt.Indicator):
 
 
 class BacktraderTrendAdvisor(BacktraderLLMAdvisor):
-    """Advisor for identifing trends"""
+    """Trend advisor
+
+    This advisor tries to identify the current trend by using multiple indicators.
+    """
 
     advisor_instructions = ADVISOR_INSTRUCTIONS
 
@@ -119,43 +122,45 @@ class BacktraderTrendAdvisor(BacktraderLLMAdvisor):
 
     def init_strategy(self, strategy):
         # init and add all required indicators
-        data_feeds = [strategy.datas[0]] if not self.add_all_data_feeds else strategy.datas
+        data_feeds = (
+            [strategy.datas[0]] if not self.add_all_data_feeds else strategy.datas
+        )
         for data_feed in data_feeds:
             short_ma = bt.ind.SMA(
                 data_feed,
                 period=self.short_ma_period,
-                plotskip=True,
+                # plotskip=True,
                 plotname="bt_trend_short_ma",
             )
             long_ma = bt.ind.SMA(
                 data_feed,
                 period=self.long_ma_period,
-                plotskip=True,
+                # plotskip=True,
                 plotname="bt_trend_long_ma",
             )
             adx = bt.ind.AverageDirectionalMovementIndex(
                 data_feed,
-                plotskip=True,
+                # plotskip=True,
                 plotname="bt_trend_adx",
             )
             atr = bt.ind.ATR(
                 data_feed,
-                plotskip=True,
+                # plotskip=True,
                 plotname="bt_trend_atr",
             )
             rsi = bt.ind.RSI(
                 data_feed,
-                plotskip=True,
+                # plotskip=True,
                 plotname="bt_trend_rsi",
             )
             bb = BollingerBandsW(
                 data_feed,
-                plotskip=True,
+                # plotskip=True,
                 plotname="bt_trend_bb",
             )
             linreg_slope = LinearRegressionSlope(
                 data_feed,
-                plotskip=True,
+                # plotskip=True,
                 period=10,
             )
             data_indicators = {
@@ -170,7 +175,9 @@ class BacktraderTrendAdvisor(BacktraderLLMAdvisor):
             }
             self.indicators[data_feed] = data_indicators
 
-    def update_state(self, state: LLMAdvisorUpdateStateData) -> LLMAdvisorUpdateStateData:
+    def update_state(
+        self, state: LLMAdvisorUpdateStateData
+    ) -> LLMAdvisorUpdateStateData:
         self.advisor_messages_input.advisor_prompt = state.messages[0].content
         self.advisor_messages_input.advisor_data = compile_data_artefacts(
             self._get_trend_indicators_data(self.lookback_period)
@@ -182,7 +189,9 @@ class BacktraderTrendAdvisor(BacktraderLLMAdvisor):
     ) -> LLMAdvisorDataArtefact:
         response = []
         for data_feed, indicators in self.indicators.items():
-            feed_data = {"price_history": [data_feed[-i] for i in range(lookback_period)]}
+            feed_data = {
+                "price_history": [data_feed[-i] for i in range(lookback_period)]
+            }
             feed_data |= {
                 indicator_name: round(indicator[0], accuracy)
                 for indicator_name, indicator in indicators.items()

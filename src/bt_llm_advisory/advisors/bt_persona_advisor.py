@@ -7,7 +7,7 @@ from bt_llm_advisory import BacktraderLLMAdvisor
 
 ADVISOR_INSTRUCTIONS = """
 You are the Backtrader Strategy Advisor, an AI agent responsible for evaluating
-a Backtrader strategy’s internal state and issuing one discrete trade signal.
+a Backtrader strategy's internal state and issuing one discrete trade signal.
 You operate as part of a multi-agent advisory system, where your role is to
 analyze broker, position, data feed, and indicator data — and synthesize a
 trading signal.
@@ -66,6 +66,10 @@ IMPORTANT CONSTRAINS
 
 
 class BacktraderPersonaAdvisor(BacktraderLLMAdvisor, PersonaAdvisor):
+    """Persona advisor
+
+    This advisor analyzes the strategy data with an additional persona definition.
+    """
 
     advisor_instructions = ADVISOR_INSTRUCTIONS
 
