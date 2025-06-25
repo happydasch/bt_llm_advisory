@@ -54,10 +54,10 @@ class LLMAdvisoryObserver(Observer):
         advisory = self.advisories.pop(0)
         signal = advisory.signal
         if signal == "buy":
-            self.l.buy[1] = self.data.close[0]
+            self.l.buy[0] = self.data.close[0]
         elif signal == "sell":
-            self.l.sell[1] = self.data.close[0]
+            self.l.sell[0] = self.data.close[0]
         elif signal == "close":
-            self.l.close[1] = self.data.close[0]
+            self.l.close[0] = self.data.close[0]
         elif signal == "none":
-            self.l.none[1] = self.data.close[0]
+            self.l.none[0] = self.data.close[0]
