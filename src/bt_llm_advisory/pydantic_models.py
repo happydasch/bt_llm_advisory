@@ -2,7 +2,7 @@ from typing import Literal
 from datetime import datetime
 
 from pydantic import BaseModel, Field
-from llm_advisory.pydantic_models import LLMAdvisorSignal, LLMAdvisorAdvise
+from llm_advisory.pydantic_models import LLMAdvisorSignal, LLMAdvisorAdvice
 
 
 class BacktraderLLMAdvisorSignal(LLMAdvisorSignal):
@@ -10,16 +10,16 @@ class BacktraderLLMAdvisorSignal(LLMAdvisorSignal):
 
     signal: Literal["bullish", "bearish", "neutral", "none"] = Field(
         default="none",
-        description="Trading advise based on advisors signals",
+        description="Trading advice based on advisors signals",
     )
 
 
-class BacktraderLLMAdvisorAdvise(LLMAdvisorAdvise):
-    """Signal for state advise"""
+class BacktraderLLMAdvisorAdvice(LLMAdvisorAdvice):
+    """Signal for state advice"""
 
     signal: Literal["buy", "sell", "close", "none"] = Field(
         default="none",
-        description="Advise strategy based on advisors signals",
+        description="Advice strategy based on advisors signals",
     )
 
 

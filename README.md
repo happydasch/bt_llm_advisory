@@ -2,7 +2,7 @@
 
 `Backtrader LLM Advisory` is using `LLM Advisory` for providing advisors to backtrader strategies. It allows the strategy to access different "advisors" which have access to the strategy and its current state.
 
-inside the strategy init call `llm_advisory.init(self)` from next call `llm_advisory.get_advise()`
+inside the strategy init call `llm_advisory.init(self)` from next call `llm_advisory.get_advice()`
 
 - Generates automatically data from a strategy and uses this for advisory data
 - Control lookback period of data to use
@@ -22,7 +22,7 @@ An overview of all available advisors with a short explaination.
 
 ### BacktraderStrategyAdvisor
 
-Common advisor for strategies. Takes available information from strategy and provides an advise based on this data.
+Common advisor for strategies. Takes available information from strategy and provides an advice based on this data.
 
 ```python
 from bt_llm_advisory.advisors import BacktraderStrategyAdvisor
@@ -102,4 +102,4 @@ TODO
 
 - add possibility to instruct another llm to create / update the used strategy based on advisors input
 - Update code of strategy by asking a llm for a change
-- Trade based on advisors advises
+- Trade based on advisors advices

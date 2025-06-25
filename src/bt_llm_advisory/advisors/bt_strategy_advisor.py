@@ -52,5 +52,9 @@ IMPORTANT CONSTRAINS
 
 
 class BacktraderStrategyAdvisor(BacktraderLLMAdvisor):
+    """Strategy advisor
+
+    This advisor analyzes strategy data.
+    """
 
     advisor_instructions = ADVISOR_INSTRUCTIONS

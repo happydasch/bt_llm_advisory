@@ -1,13 +1,6 @@
 import os
-from datetime import datetime, timedelta, UTC
-
-from dotenv import load_dotenv, dotenv_values
 import backtrader as bt
-from tl_bt_adapter import (
-    TLBackBroker,
-    TLLiveBroker,
-    TLData,
-)
+
 
 from bt_llm_advisory import BacktraderLLMAdvisory
 from bt_llm_advisory.advisors import (
@@ -17,25 +10,39 @@ from bt_llm_advisory.advisors import (
     BacktraderCandlePatternAdvisor,
     BacktraderTechnicalAnalysisAdvisor,
     BacktraderTrendAdvisor,
+    BacktraderReversalAdvisor,
 )
 
-load_dotenv()
+from llm_strategy import LLMStrategy
 
 bot_advisory = BacktraderLLMAdvisory(
-    model_provider_name=os.getenv("LLM_MODEL_PROVIDER"),
-    model_name=os.getenv("LLM_MODEL"),
-    model_config={"OPENAI_API_KEY": os.getenv("OPENAI_API_KEY")},
+    max_concurrency=1,
+    model_provider_name="ollama",  # openai, ollama
+    # openai models: gpt-4.5-preview, gpt-4o, o3, o4-mini
+    # ollama models: gemma3, gemma3:12b, gemma3:27b, qwen2.5, qwen2.5:32b, llama3.1:latest, llama3.3:70b-instruct-q4_0, mistral-small3.1, deepseek-r1
+    model_config={
+        "OPENAI_MODEL_NAME": "gpt-4o",
+        "OPENAI_API_KEY": "",
+        "OLLAMA_MODEL_NAME": "qwen2.5",
+    },
     advisors=[
+        BacktraderStrategyAdvisor(),
+        BacktraderReversalAdvisor(
+            long_ma_period=25,
+            short_ma_period=10,
+            lookback_period=10,
+            add_all_data_feeds=True,
+        ),
         BacktraderTrendAdvisor(
             long_ma_period=25,
             short_ma_period=10,
             lookback_period=10,
             add_all_data_feeds=True,
         ),
-        BacktraderCandlePatternAdvisor(lookback_period=10, add_all_data_feeds=True),
-        BacktraderStrategyAdvisor(),
-        BacktraderTechnicalAnalysisAdvisor(),
-        BacktraderFeedbackAdvisor(),
+        # BacktraderStrategyAdvisor(),
+        # BacktraderTechnicalAnalysisAdvisor(),
+        # BacktraderCandlePatternAdvisor(lookback_period=10, add_all_data_feeds=True),
+        # BacktraderFeedbackAdvisor(),
         # BacktraderPersonaAdvisor("Technical advisor", "intraday trader"),
         # BacktraderPersonaAdvisor(
         #     "Warren Buffett",
@@ -110,120 +117,18 @@ bot_advisory = BacktraderLLMAdvisory(
         #     ),
         # ),
     ],
-    max_concurrency=2,
 )
 
 
-class TestStrategy(bt.Strategy):
+cerebro = bt.Cerebro()
 
-    def __init__(self):
-        bot_advisory.init_strategy(self)
-        self.ma = bt.indicators.SMA(period=10)
-        self.ma2 = bt.indicators.SMA(period=40)
+current_dir = os.path.dirname(os.path.abspath(__file__))
+data_file = os.path.join(current_dir, "orcl-1995-2014.txt")
 
-    def stop(self):
-        print("STOP")
+data0 = bt.feeds.YahooFinanceCSVData(dataname=data_file)
 
-    def prenext(self):
-        print("PRENEXT", self.data0.datetime.datetime(0), len(self.data0))
+cerebro.addstrategy(LLMStrategy, bot_advisory)
+cerebro.adddata(data0)
 
-    def next(self):
-        if self.data0.isdelayed():
-            print("DELAYED DATA", len(self.data0))
-            return
-        print("NEXT", self.data0.datetime.datetime(0), len(self.data0))
-
-        advisory_response = bot_advisory.get_advisory()
-
-        print("\n", "ADDITIONAL DATA", "-" * 80, "\n")
-        print(advisory_response.state.data)
-
-        print("\n", "MESSAGES", "-" * 80, "\n")
-        for message in advisory_response.state.messages:
-            print(f"{message.__class__.__name__} {message.name}: {message.content}")
-
-        print("\n", "CONVERSATIONS", "-" * 80, "\n")
-        for advisor_name, conversion in advisory_response.state.conversations.items():
-            for message in conversion:
-                print("\n", advisor_name, "-" * 40)
-                print(f"{message.__class__.__name__} {message.name}: {message.content}")
-
-        print("\n", "SIGNALS", "-" * 80, "\n")
-        for advisor_name, signal in advisory_response.state.signals.items():
-            print(
-                "\n"
-                f"Advisor: '{advisor_name}'"
-                f" Signal: '{signal.signal}'"
-                f" Confidence: '{signal.confidence}'"
-                f" Reasoning: '{signal.reasoning}'"
-                "\n"
-            )
-
-        print(
-            "-" * 80,
-            "\n",
-            advisory_response.state.messages[0].content,
-            "\n",
-            "\n",
-            advisory_response.advise,
-            "\n",
-            "-" * 80,
-            "\n\n",
-        )
-
-    def notify_trade(self, trade):
-        print(trade)
-
-
-def create_cerebro():
-
-    config = dotenv_values()
-
-    cerebro = bt.Cerebro(quicknotify=True, stdstats=False)
-    broker = TLLiveBroker(
-        environment=config.get("tl_environment", "demo"),
-        username=config.get("tl_email", ""),
-        password=config.get("tl_password", ""),
-        server=config.get("tl_server", ""),
-        acc_num=int(config.get("tl_acc_num", 0)),
-        log_level="info",
-        disk_cache_location="./dc",
-        # convert_currencies=True,
-        # convert_currencies_cache_resolution=60,
-        # quicknotify=True,
-    )
-    cerebro.setbroker(broker)
-
-    # create data
-    # from and to date to fetch historical data only
-    # from_date = datetime.now(UTC) - timedelta(days=14)
-    # to_date = datetime.now(UTC)
-
-    timeframe = bt.TimeFrame.Minutes
-    compression = 1
-    compression_1 = 5
-    data = TLData(
-        dataname="BTCUSD",
-        timeframe=timeframe,
-        compression=compression,
-        # fromdate=from_date.replace(tzinfo=None),
-        # todate=to_date.replace(tzinfo=None),
-        num_prefill_candles=400,
-        start_live_data=True,
-    )
-    # when data switches to live, ticks will be used, either resampledata or replaydata
-    cerebro.resampledata(data, timeframe=timeframe, compression=compression)
-    cerebro.resampledata(data, timeframe=timeframe, compression=compression_1)
-    cerebro.addanalyzer(bt.analyzers.SharpeRatio, _name="sharpe")
-    cerebro.addstrategy(TestStrategy)
-    return cerebro
-
-
-try:
-    cerebro = create_cerebro()
-    cerebro.run()
-except KeyboardInterrupt as e:
-    print(e)
-finally:
-    cerebro.runstop()
-    print("Cerebro stopped.")
+cerebro.run()
+cerebro.plot()

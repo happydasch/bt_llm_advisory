@@ -173,9 +173,15 @@ def generate_positions_data(strategy: bt.Strategy) -> BacktraderPositionsData:
         data_instrument = get_data_feed_instrument(data_feed)
         size = position.size
         price = position.price
-        positions[data_instrument] = BacktraderPositionData(
-            position_size=size, position_price=price
-        )
+        if data_instrument in positions:
+            if not size and not price:
+                continue
+            positions[data_instrument].position_size += size
+            positions[data_instrument].position_price = (positions[data_instrument].position_price + price) / 2
+        else:
+            positions[data_instrument] = BacktraderPositionData(
+                position_size=size, position_price=price
+            )
     return BacktraderPositionsData(positions=positions)
 
 

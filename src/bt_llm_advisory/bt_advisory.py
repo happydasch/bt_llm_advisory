@@ -33,7 +33,7 @@ class BacktraderLLMAdvisory(LLMAdvisory):
         self.metadata["strategy"] = strategy
         self.metadata["data_lookback_period"] = data_lookback_period
         self.metadata["indicator_lookback_period"] = indicator_lookback_period
-        for advisor in self.all_advisors:
+        for advisor in self.all_advisors + [self.advisory_advisor]:
             if not isinstance(advisor, BacktraderLLMAdvisor):
                 continue
             if not hasattr(advisor, "init_strategy"):

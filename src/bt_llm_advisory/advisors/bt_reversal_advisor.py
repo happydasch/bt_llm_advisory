@@ -10,14 +10,15 @@ from llm_advisory.helper.llm_prompt import compile_data_artefacts
 from bt_llm_advisory import BacktraderLLMAdvisor
 from bt_llm_advisory.helper.bt_data_generation import get_data_feed_name
 
+
 ADVISOR_INSTRUCTIONS = """
-You are an Backtrader Trend Advisor, an AI advisor agent specialized in detecting
-market trends from indicator values and close prices.
+You are an Backtrader Reversal Advisor, an AI advisor agent specialized in detecting
+reversal in trends from indicator values and close prices.
 You operate as one advisor within a multi-agent advisory system; your sole
 responsibility is to analyze all provided DataFeeds and output 1 of 4 trend signals.
 If unsure or unable to identify current trend, use "none" as a signal.
 When you receive more than one DataFeed use the additonal DataFeeds for confirmation
-of the trend.
+of the reversal.
 
 ---
 
@@ -37,13 +38,13 @@ You will receive data with the following fields:
 
 TASK
 1. Return exactly one of:
-    - "bullish"   — when there is a clear upward trend
-    - "bearish"   — when there is a clear downward trend
-    - "neutral"   — when the price is range-bound or oscillating or the trend strength is too weak
-    - "none"      — insufficient or conflicting data to call a trend
+    - "bullish"   — when there is a clear bullish reversal in trend
+    - "bearish"   — when there is a clear bearish reversal in trend
+    - "neutral"   — when the market is range-bound and the price oscillates
+    - "none"      — insufficient or conflicting data to call a reversal
 2. Describe your signals in reasoning
 3. Assign a confidence score between 0.0 and 1.0 reflecting your conviction
-in the selected trend where 0.0 is the lowest conviction and 1.0 is the highest
+in the selected reversal where 0.0 is the lowest conviction and 1.0 is the highest
 conviction matching the reasoning
 
 ---
@@ -99,11 +100,7 @@ class LinearRegressionSlope(bt.Indicator):
         self.lines.slope[0] = slope
 
 
-class BacktraderTrendAdvisor(BacktraderLLMAdvisor):
-    """Trend advisor
-
-    This advisor tries to identify the current trend by using multiple indicators.
-    """
+class BacktraderReversalAdvisor(BacktraderLLMAdvisor):
 
     advisor_instructions = ADVISOR_INSTRUCTIONS
 
@@ -131,37 +128,37 @@ class BacktraderTrendAdvisor(BacktraderLLMAdvisor):
                 data_feed,
                 period=self.short_ma_period,
                 # plotskip=True,
-                plotname="bt_trend_short_ma",
+                plotname="bt_reversal_short_ma",
             )
             long_ma = bt.ind.SMA(
                 data_feed,
                 period=self.long_ma_period,
-                # plotskip=True,
-                plotname="bt_trend_long_ma",
+                plotskip=True,
+                plotname="bt_reversal_long_ma",
             )
             adx = bt.ind.AverageDirectionalMovementIndex(
                 data_feed,
-                # plotskip=True,
-                plotname="bt_trend_adx",
+                plotskip=True,
+                plotname="bt_reversal_adx",
             )
             atr = bt.ind.ATR(
                 data_feed,
-                # plotskip=True,
-                plotname="bt_trend_atr",
+                plotskip=True,
+                plotname="bt_reversal_atr",
             )
             rsi = bt.ind.RSI(
                 data_feed,
-                # plotskip=True,
-                plotname="bt_trend_rsi",
+                plotskip=True,
+                plotname="bt_reversal_rsi",
             )
             bb = BollingerBandsW(
                 data_feed,
-                # plotskip=True,
-                plotname="bt_trend_bb",
+                plotskip=True,
+                plotname="bt_reversal_bb",
             )
             linreg_slope = LinearRegressionSlope(
                 data_feed,
-                # plotskip=True,
+                plotskip=True,
                 period=10,
             )
             data_indicators = {
