@@ -48,9 +48,7 @@ def get_clock_from_lineroot(
     elif isinstance(lineroot_obj, bt.AbstractDataBase):
         clock = lineroot_obj
     else:
-        raise Exception(
-            f"Unsupported line root object: {lineroot_obj.__class__.__name__}"
-        )
+        raise Exception(f"Unsupported line root object: {lineroot_obj.__class__.__name__}")
     return clock
 
 
@@ -92,7 +90,7 @@ def get_indicator_name(indicator: bt.IndicatorBase) -> str:
     name = indicator.__class__.__name__
     if hasattr(indicator, "plotinfo") and indicator.plotinfo.plotname:
         name = indicator.plotinfo.plotname
-    return f"{name}{indicator._plotlabel() if hasattr(indicator, "_plotlabel") else ""}"
+    return f"{name}{indicator._plotlabel() if hasattr(indicator, '_plotlabel') else ''}"
 
 
 def get_analyzer_name(analyzer: bt.Analyzer) -> str:
@@ -133,12 +131,12 @@ def generate_strategy_data(
             analyzer_names.append(analyzer_name)
     description = (
         f"This is an overview of the trading strategy {strategy_name}."
-        f"\nDataFeeds in use: {",".join(list(data_names))}."
+        f"\nDataFeeds in use: {','.join(list(data_names))}."
     )
     if len(indicator_names) > 0:
-        description += f"\nIndicators in use: {",".join(list(indicator_names))}"
+        description += f"\nIndicators in use: {','.join(list(indicator_names))}"
     if len(analyzer_names) > 0:
-        description += f"\nAnalyzers in use: {",".join(list(analyzer_names))}"
+        description += f"\nAnalyzers in use: {','.join(list(analyzer_names))}"
     return BacktraderStrategyData(
         name=strategy_name,
         description=description,
@@ -159,9 +157,7 @@ def generate_broker_data(strategy: bt.Strategy) -> BacktraderBrokerData:
     if margin > 0:
         description += f" Currently a margin of {margin:.2f}USD is used."
 
-    return BacktraderBrokerData(
-        description=description, cash=cash, value=value, margin=margin
-    )
+    return BacktraderBrokerData(description=description, cash=cash, value=value, margin=margin)
 
 
 def generate_positions_data(strategy: bt.Strategy) -> BacktraderPositionsData:
@@ -177,7 +173,9 @@ def generate_positions_data(strategy: bt.Strategy) -> BacktraderPositionsData:
             if not size and not price:
                 continue
             positions[data_instrument].position_size += size
-            positions[data_instrument].position_price = (positions[data_instrument].position_price + price) / 2
+            positions[data_instrument].position_price = (
+                positions[data_instrument].position_price + price
+            ) / 2
         else:
             positions[data_instrument] = BacktraderPositionData(
                 position_size=size, position_price=price
