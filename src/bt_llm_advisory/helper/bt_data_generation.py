@@ -245,7 +245,7 @@ def generate_indicator_data(
         elif isinstance(indicator, bt.LinesOperation):
             lines[get_indicator_name(indicator)] = indicator[-i]
         else:
-            raise ValueError(f"Unkown indicator type: {indicator.__class__.__name__}")
+            raise ValueError(f"Unknown indicator type: {indicator.__class__.__name__}")
         indicator_data.append(lines)
     return BacktraderIndicatorData(name=indicator_name, data=indicator_data)
 
